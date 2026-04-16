@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #000;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* ===== Видео на весь экран ===== */
+    video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* ===== Экран с последним кадром и кнопкой ===== */
+    #middleScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-image: url('poster.jpg');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+
+    /* ===== Кнопка "Забрать" ===== */
+    #claimBtn {
+      padding: 16px 48px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #6e00ff, #9b30ff);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      box-shadow: 0 0 30px rgba(110, 0, 255, 0.5);
+      transition: all 0.3s ease;
+      animation: pulse 2s infinite;
+    }
+
+    #claimBtn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 0 50px rgba(155, 48, 255, 0.8);
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 30px rgba(110, 0, 255, 0.5); }
+      50% { box-shadow: 0 0 50px rgba(155, 48, 255, 0.9); }
+    }
+
+    /* ===== Анимация появления кнопки ===== */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fade-in {
+      animation: fadeInUp 0.8s ease forwards;
+    }
+
+    /* ===== Экран закрытия ===== */
+    #closeScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      font-size: 24px;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== ФАЗА 1: Первая катсцена ===== -->
+  <video id="introVideo" autoplay playsinline>
+    <source src="intro.mp4" type="video/mp4">
+  </video>
+
+  <!-- ===== ФАЗА 2: Последний кадр + кнопка ===== -->
+  <div id="middleScreen" class="hidden">
+    <button id="claimBtn" class="fade-in">Забрать</button>
+  </div>
+
+  <!-- ===== ФАЗА 3: Вторая катсцена ===== -->
+  <video id="outroVideo" class="hidden" playsinline>
+    <source src="outro.mp4" type="video/mp4">
+  </video>
+
+  <!-- ===== ФАЗА 4: Экран закрытия ===== -->
+  <div id="closeScreen" class="hidden">
+    <p>Спасибо! Окно можно закрыть.</p>
+  </div>
+
+  <!-- Скрытая ссылка для скачивания -->
+  <a id="downloadLink" href="file.zip" download class="hidden"></a>
+
+  <script>
+    const introVideo   = document.getElementById('introVideo');
+    const middleScreen = document.getElementById('middleScreen');
+    const claimBtn     = document.getElementById('claimBtn');
+    const outroVideo   = document.getElementById('outroVideo');
+    const closeScreen  = document.getElementById('closeScreen');
+    const downloadLink = document.getElementById('downloadLink');
+
+    // ── ФАЗА 1 → ФАЗА 2 ──
+    // Когда первое видео закончилось — показать последний кадр + кнопку
+    introVideo.addEventListener('ended', () => {
+      introVideo.classList.add('hidden');
+      middleScreen.classList.remove('hidden');
+    });
+
+    // ── ФАЗА 2 → ФАЗА 3 ──
+    // Нажатие на кнопку: скачать файл + запустить вторую катсцену
+    claimBtn.addEventListener('click', () => {
+      // Запускаем загрузку файла
+      downloadLink.click();
+
+      // Скрываем экран с кнопкой, показываем второе видео
+      middleScreen.classList.add('hidden');
+      outroVideo.classList.remove('hidden');
+      outroVideo.play();
+    });
+
+    // ── ФАЗА 3 → КОНЕЦ ──
+    // Когда второе видео закончилось — попытка закрыть вкладку
+    outroVideo.addEventListener('ended', () => {
+      outroVideo.classList.add('hidden');
+
+      // Пытаемся закрыть вкладку
+      window.close();
+
+      // Если браузер не дал закрыть — показываем финальный экран
+      setTimeout(() => {
+        closeScreen.classList.remove('hidden');
+      }, 500);
+    });
+
+    // ── Автозапуск с обработкой блокировки ──
+    // Некоторые браузеры блокируют autoplay — клик по экрану запустит видео
+    document.body.addEventListener('click', () => {
+      if (introVideo.paused && !introVideo.classList.contains('hidden')) {
+        introVideo.play();
+      }
+    }, { once: true });
+  </script>
+
+</body>
+</html>
